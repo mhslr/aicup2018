@@ -1,5 +1,5 @@
 #pragma once
-#include "values.cpp"
+#include "parameters.cpp" // for constants in trajectories
 #include <bits/stdc++.h>
 using namespace std;
 
