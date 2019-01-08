@@ -33,14 +33,14 @@ double cross (const p2& a, const p2& b)
 double  dot  (const p2& a, const p2& b)
 { return a.x*b.x + a.z*b.z; }
 
-struct seg {
+// probably useless if we only care about (z=...) planes 
+struct segment {
     p2 o,d; // origin and direction
-    seg (const double& xo, const double& zo,
-         const double& xd, const double& zd)
+    segment (const double& xo, const double& zo,
+             const double& xd, const double& zd)
         : o(xo,zo), d(xd,zd) {}
 };
-
-p2 intersect(const seg& s1,const seg& s2) {
+p2 intersect(const segment& s1,const segment& s2) {
     double kek = cross(s1.d,s2.d);
     if (!kek) return {0.0,0.0}; // we want to avoid crash
     return s1.o + s1.d * (cross(s2.o-s1.o,s2.d) / cross(s1.d,s2.d));
@@ -75,6 +75,9 @@ struct p3 {
     p3& operator*=(const double& k)
     { *this = (*this)*k; return *this; }
 };
+
+double  dot  (const p3& a, const p3& b)
+{ return a.x*b.x + a.y*b.y + a.z*b.z; }
 
 struct traj { // parabolic trajectory
     double x,y,z; // tip of parabola
@@ -112,3 +115,23 @@ struct traj { // parabolic trajectory
         return {pos,vel};
     }
 };
+
+// velocities of robot and ball after collision
+pair<p3,p3> collide (
+        const p3& Prob, const p3& Vrob,
+        const p3& Pbal, const p3& Vbal) {
+    // normal vector to collision surface
+    p3 delta = Prob-Pbal;
+    double dn = delta.norm();
+    // assert dn approx BRAD + RRAD
+    delta *= (1/dn);
+    // initial
+    double uR = dot(Vrob,delta),
+           uB = dot(Vbal,delta);
+    // outogoing
+    double vR = ((MROB-MBAL)*uR + 2*MBAL*uB) / (MROB+MBAL),
+           vB = ((MBAL-MROB)*uB + 2*MROB*uR) / (MROB+MBAL);
+    p3 Wrob = Vrob + delta*(vR-uR);
+    p3 Wbal = Vbal + delta*(vB-uB);
+    return {Wrob,Wbal};
+}
