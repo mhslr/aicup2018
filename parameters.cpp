@@ -2,12 +2,15 @@
 
 /*
  * DEFAULT UNITS
- * time  = s
- * space = game metric
+ * T = s
+ * L = arbitrary
+ * M = arbitrary
  */
 
 // game constants
 const double
+MROB =             2.0,
+MBAL =             1.0,
 AWID =            30.0,
 ADEP =            40.0,
 TD   =          1.0/60, // tick duration
