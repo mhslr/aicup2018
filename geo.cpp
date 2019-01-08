@@ -1,21 +1,24 @@
 #pragma once
-#include "parameters.cpp" // for constants in trajectories
+#include "parameters.cpp"
 #include <bits/stdc++.h>
 using namespace std;
 
 struct p2 {
     double x,z;
 
+    p2 (const double& _x, const double& _z)
+        : x(_x), z(_z) {}
+
     double norm()
     { return sqrt( x*x + z*z ); }
     double norm2()
     { return x*x + z*z ; }
 
-    p2 operator+(const p2& o)
+    p2 operator+(const p2& o) const
     { return {x+o.x, z+o.z}; }
-    p2 operator-(const p2& o)
+    p2 operator-(const p2& o) const
     { return {x-o.x, z-o.z}; }
-    p2 operator*(const double& k)
+    p2 operator*(const double& k) const
     { return {k*x, k*z}; }
     p2& operator+=(const p2& o)
     { *this = (*this)+o; return *this; }
@@ -34,7 +37,7 @@ struct seg {
     p2 o,d; // origin and direction
     seg (const double& xo, const double& zo,
          const double& xd, const double& zd)
-        : o(xo,zo),d(xd,zd) {}
+        : o(xo,zo), d(xd,zd) {}
 };
 
 p2 intersect(const seg& s1,const seg& s2) {
@@ -46,18 +49,24 @@ p2 intersect(const seg& s1,const seg& s2) {
 struct p3 {
     double x,y,z;
 
+    p3 (const double& x, const double& y, const double& z)
+        : x(x), y(y), z(z) {}
+
     double norm()
     { return sqrt( x*x + y*y + z*z ); }
     double norm2()
     { return x*x + y*y + z*z ; }
-
     p2 flat() { return {x,z}; }
+    double flatnorm()
+    { return sqrt( x*x + z*z ); }
+    double flatnorm2()
+    { return x*x + z*z ; }
 
-    p3 operator+(const p3& o)
+    p3 operator+(const p3& o) const
     { return {x+o.x, y+o.y, z+o.z}; }
-    p3 operator-(const p3& o)
+    p3 operator-(const p3& o) const
     { return {x-o.x, y-o.y, z-o.z}; }
-    p3 operator*(const double& k)
+    p3 operator*(const double& k) const
     { return {k*x, k*y, k*z}; }
     p3& operator+=(const p3& o)
     { *this = (*this)+o; return *this; }
@@ -91,6 +100,14 @@ struct traj { // parabolic trajectory
         if (pos.y < BRAD) {
             pos.y = BRAD;
             vel.y = 0.0;
+        }
+        if (fabs(pos.x) > AWID-BRAD) {
+            pos.x = (pos.x > 0.0 ? 2 : -2) * (AWID-BRAD) - pos.x;
+            vel.x = -vel.x;
+        }
+        if (pos.z > ADEP-BRAD) {
+            pos.z = 2*(ADEP-BRAD) - pos.z;
+            vel.z = -vel.z;
         }
         return {pos,vel};
     }
