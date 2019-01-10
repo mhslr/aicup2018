@@ -6,6 +6,7 @@ using namespace std;
 struct p2 {
     double x,z;
 
+    p2 () {} 
     p2 (const double& _x, const double& _z)
         : x(_x), z(_z) {}
 
@@ -49,6 +50,7 @@ p2 intersect(const segment& s1,const segment& s2) {
 struct p3 {
     double x,y,z;
 
+    p3 () {} 
     p3 (const double& x, const double& y, const double& z)
         : x(x), y(y), z(z) {}
 
@@ -84,6 +86,7 @@ struct traj { // parabolic trajectory
     double vx,vz; // plane velocity
     double ttt; // time till tiptop
 
+    traj () {}
     // constructor from cur pos and velocity
     traj(const p3& pos,const p3& vel) {
         ttt = vel.y/GRAV;
