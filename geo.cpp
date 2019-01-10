@@ -111,7 +111,7 @@ struct traj { // parabolic trajectory
             pos.x = (pos.x > 0.0 ? 2 : -2) * (AWID-BRAD) - pos.x;
             vel.x = -vel.x;
         }
-        if (pos.z > ADEP-BRAD) {
+        if (pos.z > ADEP-BRAD && y < 6*BRAD) {
             pos.z = 2*(ADEP-BRAD) - pos.z;
             vel.z = -vel.z;
         }

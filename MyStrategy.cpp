@@ -24,7 +24,7 @@ const double
 ZOFF = 0.64*(RRAD+BRAD);
 const p3
 GOAL (0.0,0.0,44.0),
-HOME (0.0,0.0,-42.0);
+HOME (0.0,0.0,-43.0);
 
 // current
 bool DDEF = 0; // will kick
@@ -55,7 +55,6 @@ void MyStrategy::act
     }
 
     if (ATK_ID == thisROB.id) { // ATKer
-        return;
         for (int tick=1;tick<=300;tick++) { // up to 5 second
             double t = tick * TDUR;
             auto [Bpos,Bvel] = BallT.predict(t);
@@ -87,6 +86,7 @@ void MyStrategy::act
         }
         {
             p3 dir = HOME-meP;
+            dir.x += curBP.x/4;
             double n = dir.norm();
             if (n > 2.0*RRAD) {
                 dir *= (MAGS/n);
@@ -94,17 +94,18 @@ void MyStrategy::act
                 return;
             }
         }
-        double t = 1.0; // <- we actually want MACC/MAGS + flying time here
+        double tgrd = MAGS/MACC;
+        double tair = 0.3;
                         // try to reduce it to 0.6 and following coefficients also have to be updated
-        auto [Bpos,Bvel] = BallT.predict(t);
+        auto [Bpos,Bvel] = BallT.predict(tgrd+tair);
         p3 obj = Bpos - meP;
         obj.z -= RRAD + BRAD;
-        obj.y -= 3.5;
-        double fn = obj.flatnorm(); // maybe you wont see something coming
-        if (fn < MACC/8 + MAGS/2) { // reachable in 1 sec
-            DJUM = 2*(obj.y + GRAV/4);
+        double fn = obj.flatnorm();
+        if (fn < MACC*tgrd*tgrd/2 + MAGS*tair) { // reachable in 1 sec
+            // j*tair - GRAV*tair*tair/2 = H
+            DJUM = obj.y/tair + GRAV*tair/2;
             DOBJ = obj*1000;
-            DTIK = 30;
+            DTIK = tgrd/TDUR;
             DDEF = 1;
             apply(action,DOBJ,0.0);
         }
