@@ -5,4 +5,4 @@
 - DEF is now very vulnerable to lobs
 - We shall try heuristics for trajectories with initial velocity:
   - option 1: superimpose old decaying linearly and new increasing linearly until target velocity reached
-  - any idea
+  - any other idea ?
