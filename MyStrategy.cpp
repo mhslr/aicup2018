@@ -21,16 +21,12 @@ MyStrategy::MyStrategy() {}
 int ATK_ID;
 // parameters
 const double
-ZOFF = 0.64*(RRAD+BRAD);
+ZOFF = 0.66*(RRAD+BRAD),
+ZDEF = -41.0,
+XDEF = 8.0;
 const p3
-GOAL (0.0,0.0,44.0),
-HOME (0.0,0.0,-43.0);
-
-// current
-bool DDEF = 0; // will kick
-int DTIK;      // till jump
-p3 DOBJ;       // general direction
-double DJUM;   // jump
+GOAL (0.0,0.0,44.0);
+int TK = -1;
 
 void MyStrategy::act
        (const model::Robot&  thisROB,
@@ -48,14 +44,14 @@ void MyStrategy::act
 
     traj BallT (curBP, curBV);
 
+
+    if (ATK_ID == thisROB.id) { // ATKer
     if (!thisROB.touch) { // in air
         return;
         // could jump off wall
         // or (???) increase radius to kick
     }
-
-    if (ATK_ID == thisROB.id) { // ATKer
-        for (int tick=1;tick<=300;tick++) { // up to 5 second
+        for (int tick=1;tick<=200;tick++) {
             double t = tick * TDUR;
             auto [Bpos,Bvel] = BallT.predict(t);
             p3 dir = Bpos - meP;
@@ -65,7 +61,7 @@ void MyStrategy::act
             if (n < t*MAGS || tick==200) { // heuristic for when to touch
                 dir *= (MAGS/n);
                 double j =
-                    tick < 100
+                    t < 0.5
                     && n < 2.0*BRAD
                     && (Bvel-meV).flatnorm2() < 3.0
                     && Bpos.y > 1.5*BRAD
@@ -75,40 +71,47 @@ void MyStrategy::act
             }
         }
     } else { // DEFender
-        if (DDEF) {
-            if (--DTIK<=0) {
-                apply(action,DOBJ,DJUM);
-                DDEF = 0;
-                return;
-            }
-            apply(action,DOBJ,0.0);
+        if (!thisROB.touch) { // in air
             return;
+            // could jump off wall
+            // or (???) increase radius to kick
         }
-        {
-            p3 dir = HOME-meP;
-            dir.x += curBP.x/4;
+        if (curBP.z < -25 || (curBP.z < -5 && curBV.z < -20)) // we try to predict a kick
+        for (int tick=1;tick<120;tick++) {
+            double t = tick * TDUR;
+            auto [Bpos,Bvel] = BallT.predict(t);
+            p3 dir = Bpos - meP;
+            if (fabs(Bpos.x) > XDEF+2*fabs(Bpos.z-ZDEF)) break; // dont do weird shit
+            // p3 obj = GOAL - Bpos;
+            // dir -= obj*(ZOFF/obj.norm());
+            dir.y -= 0.4;
+            dir.z -= 1.6;
+            p3 delta = dir - meV*t;
+            if ( t<0.2
+                && dir.y < 3*BRAD
+                && dir.flatnorm() < 1
+                && min(meV.flatnorm(),(dir-meV*t).flatnorm())<0.4)
+            { // immediate need to jump
+                //cout << "triggered"<<endl;
+                apply(action,dir,15.0);
+                return;
+            }
             double n = dir.norm();
-            if (n > 2.0*RRAD) {
+            if (n < t*MAGS) { // heuristic for when to touch
                 dir *= (MAGS/n);
-                apply(action,dir,0.0);
+                double j =
+                        t < 0.4
+                        && fabs(15.0*t - GRAV*t*t/2 - dir.y) < 0.4
+                        && fabs(delta.x) < 1.2 && delta.z < -0.3 && delta.z > 1.4 ?
+                    15 : 0 ;
+                apply(action,dir,j);
                 return;
             }
         }
-        double tgrd = MAGS/MACC;
-        double tair = 0.3;
-                        // try to reduce it to 0.6 and following coefficients also have to be updated
-        auto [Bpos,Bvel] = BallT.predict(tgrd+tair);
-        p3 obj = Bpos - meP;
-        obj.z -= RRAD + BRAD;
-        double fn = obj.flatnorm();
-        if (fn < MACC*tgrd*tgrd/2 + MAGS*tair) { // reachable in 1 sec
-            // j*tair - GRAV*tair*tair/2 = H
-            DJUM = obj.y/tair + GRAV*tair/2;
-            DOBJ = obj*1000;
-            DTIK = tgrd/TDUR;
-            DDEF = 1;
-            apply(action,DOBJ,0.0);
-        }
+        // rest position - no immediate danger
+        p3 obj (min(XDEF,max(-XDEF,XDEF*curBP.x/(55+curBP.z))),0.0,ZDEF);
+        p3 dir = obj - meP;
+        apply(action,dir*30,0.0);
         return;
     }
 }

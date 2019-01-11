@@ -107,17 +107,38 @@ struct traj { // parabolic trajectory
             pos.y = BRAD;
             vel.y = 0.0;
         }
-        if (fabs(pos.x) > AWID-BRAD) {
+        if (fabs(pos.x) > AWID-BRAD) { // side wall reflection
             pos.x = (pos.x > 0.0 ? 2 : -2) * (AWID-BRAD) - pos.x;
             vel.x = -vel.x;
         }
-        if (pos.z > ADEP-BRAD && y < 6*BRAD) {
-            pos.z = 2*(ADEP-BRAD) - pos.z;
-            vel.z = -vel.z;
+        if (fabs(pos.z) > ADEP-BRAD) { // front and back wall reflection
+            double dz = fabs(pos.z) - (ADEP-BRAD);
+            double T = dz / fabs(vel.z);
+            double xT = pos.x - T*vel.x;
+            double yT = pos.y - T*vel.y;
+            if (yT > 10 || fabs(xT) > 15) {
+                pos.z = (pos.z > 0 ? 2 : -2) * (ADEP-BRAD) - pos.z;
+                vel.z = -vel.z;
+            }
         }
         return {pos,vel};
     }
 };
+
+pair<p2,p2> run (
+        const p2& Opos, const p2& Ovel,
+        const p2& dir, const double& t) {
+    p2 delta = dir - Ovel;
+    double n = delta.norm();
+    if (MACC*t > n) { // capped
+        p2 Fpos = Opos + (dir+Ovel)*(n/MACC/2) + dir*(t-n/MACC);
+        return {Fpos,dir};
+    } else {
+        p2 Fpos = Opos + Ovel*t + delta*(t*t/2);
+        p2 Fvel = Ovel + delta*t;
+        return {Fpos,Fvel};
+    }
+}
 
 // velocities of robot and ball after collision
 pair<p3,p3> collide (
