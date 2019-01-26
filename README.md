@@ -8,5 +8,5 @@ Allowed time in competition was 20s for "decision" per every tick, sampling rate
 ## Content
 - MyStrategy.cpp: simple strategy with 1 attacker trying to catch ball asap and push it and
   1 defender staying at base and waiting for "danger" to act
-- geo.cpp: for predictions, trajectories are parabolas, it is easy to add bounces, and they stop being relevant pretty quick (geometric sequence for the height)
+- geo.cpp: extensively used for predictions since most trajectories are parabolas these mwthods allow precise interpolation in time. (it is still missing bounces, but it is easy to implement and they stop being relevant pretty quick (geometric sequence for the height))
 - parameters.cpp: some constants used for computations
