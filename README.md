@@ -1,8 +1,12 @@
 # Russian A.I. Cup - codeball 2018
+website http://russianaicup.ru/
 
-## todo
-- ATK needs to be a bit more aggressive: get balls earlier in air
-- DEF is now very vulnerable to lobs
-- We shall try heuristics for trajectories with initial velocity:
-  - option 1: superimpose old decaying linearly and new increasing linearly until target velocity reached
-  - any other idea ?
+This strategy got me to rank ~175 in sandbox at round 1.
+It is very light: I could use it with the graphical local runner at 60fps.
+Allowed time in competition was 20s for "decision" per every tick, sampling rate was 60 ticks per second.
+
+## Content
+- MyStrategy.cpp: simple strategy with 1 attacker trying to catch ball asap and push it and
+  1 defender staying at base and waiting for "danger" to act
+- geo.cpp: for predictions, trajectories are parabolas, it is easy to add bounces, and they stop being relevant pretty quick (geometric sequence for the height)
+- parameters.cpp: some constants used for computations
